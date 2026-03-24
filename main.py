@@ -13,7 +13,8 @@ def main():
 
     elif command == "sales":
         from runners.run_sales import run        
-
+    elif command == "research":
+        from runners.run_research import run
     else:
         print(f"Unknown command: {command}")
         sys.exit(1)

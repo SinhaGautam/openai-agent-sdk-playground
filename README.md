@@ -26,8 +26,8 @@ Copy `.env` from your secrets manager or create one with the variables below. Th
 | `OPENAI_MODEL` | Model name when using OpenAI | `gpt-4.1-mini` |
 | `OPENAI_API_KEY` | Required when `MODEL_PROVIDER=openai` | — |
 | `SENDGRID_API_KEY` | Required for the **sales** demo to send email | — |
-| `SENDGRID_FROM_EMAIL` | Verified SendGrid sender | `ed@edwarddonner.com` |
-| `SENDGRID_TO_EMAIL` | Recipient for the demo | `ed.donner@gmail.com` |
+| `SENDGRID_FROM_EMAIL` | Verified SendGrid sender 
+| `SENDGRID_TO_EMAIL` | Recipient for the demo 
 
 Override the SendGrid defaults in `.env` for your verified sender and inbox.
 
@@ -36,9 +36,10 @@ Override the SendGrid defaults in `.env` for your verified sender and inbox.
 ```bash
 uv run python main.py joke    # single joke agent, traced run
 uv run python main.py sales   # sales manager → draft tools → email handoff
+uv run python main.py research # gradio deep-research app (streaming report)
 ```
 
-Or: `python main.py joke` / `python main.py sales` with the project venv activated.
+Or: `python main.py joke` / `python main.py sales` / `python main.py research` with the project venv activated.
 
 ## Project layout
 
@@ -47,9 +48,12 @@ Or: `python main.py joke` / `python main.py sales` with the project venv activat
 | `main.py` | CLI entry: dispatches to runners |
 | `runners/run_joke.py` | Minimal `Runner.run` + `trace` using the joke agent |
 | `runners/run_sales.py` | Runs the sales outreach demo (uses `builder`) |
+| `runners/run_research.py` | Gradio UI and async streaming runner for deep research |
 | `ai_agent/basic/joke_agent.py` | Simple `Agent` factory |
 | `ai_agent/sales_outreach/` | Sales agents, tools, manager, `builder`, email + SendGrid |
+| `ai_agent/deep_research/` | Planner/search/report/email agents coordinated by `ResearchManager` |
 | `ai_agent/sales_outreach/builder.py` | Wires model → draft tools → manager → email handoff |
+| `ai_agent/deep_research/research_manager.py` | End-to-end deep research orchestration + trace link output |
 | `ai_agent/agent.py` | Standalone joke script (same model factory as `main.py`; run with `python -m ai_agent.agent`) |
 | `models/` | `get_model()` switches Ollama vs OpenAI chat-completions models |
 | `config/settings.py` | Loads `.env` and model / SendGrid settings |
@@ -61,6 +65,15 @@ Or: `python main.py joke` / `python main.py sales` with the project venv activat
 2. The **Sales Manager** agent is instructed to call those tools, pick one draft, and hand off once to the **Email Manager**.
 3. The **Email Manager** uses nested tools for subject and HTML conversion, then `send_html_email` via SendGrid.
 
+## Deep research agent (high level)
+
+1. `PlannerAgent` creates a structured `WebSearchPlan` (currently 5 search queries with reasons).
+2. `ResearchManager` runs searches concurrently through `Search agent`, which is required to call the `web_search` tool.
+3. `WriterAgent` synthesizes all search summaries into a long-form markdown report (`ReportData`).
+4. The run streams status updates in Gradio and emits a trace URL for debugging/inspection.
+
+Note: email sending in deep research is scaffolded but currently disabled in `ResearchManager.send_email`.
+
 ## Dependencies
 
-See `pyproject.toml`: `openai`, `openai-agents`, `python-dotenv`, `sendgrid`.
+See `pyproject.toml`: `openai`, `openai-agents`, `python-dotenv`, `sendgrid`, `duckduckgo-search`, `gradio`.
