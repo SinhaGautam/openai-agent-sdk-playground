@@ -1,16 +1,19 @@
+from agents import Runner, trace
 import gradio as gr
-from dotenv import load_dotenv
 from models.factory import get_model
-from ai_agent.deep_research.research_manager import ResearchManager
-
-load_dotenv(override=True)
+from ai_agent.autonomus_research.builder import build_autonomous_research_agent
 
 
 async def run_research(query: str):
-    model = get_model()
-    async for chunk in ResearchManager(model).run( query):
-        yield chunk
 
+    model = get_model()
+    agent = build_autonomous_research_agent(model)
+    
+    yield("Starting research...")
+
+    with trace("Autonomous Research"):
+        result = await Runner.run(agent, query)
+        yield result.final_output
 
 
 def create_ui():
@@ -40,6 +43,7 @@ def create_ui():
         )
 
     return ui
+
 
 
 def run():

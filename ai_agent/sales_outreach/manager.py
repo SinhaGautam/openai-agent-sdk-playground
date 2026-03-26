@@ -1,6 +1,6 @@
 from agents import Agent
 
-from utils.guardrails import guardrail_against_name
+from ai_agent.sales_outreach.utils.guardrails import guardrail_against_name
 
 
 sales_manager_instructions = """

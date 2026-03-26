@@ -1,5 +1,5 @@
 from agents import Agent, ModelSettings
-from ai_agent.deep_research.tools.websearch_tool import web_search
+from ai_agent.autonomus_research.tools.websearch_tool import web_search
 
 INSTRUCTIONS = (
     "You are a research assistant. Given a search term, you search the web for that term and "
